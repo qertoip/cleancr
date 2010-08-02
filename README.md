@@ -1,4 +1,4 @@
-﻿# cleancr
+# cleancr
 
 (this is initial version of the software and should not be used for any serious purposes)
 
@@ -15,7 +15,8 @@ from the whole project with one command.
 
 ## Usage
 
-FIXME: write
+java -jar cleancr e:\project
+java -jar cleancr e:\project\docs.txt
 
 ## Installation
 
@@ -23,6 +24,6 @@ Simply download and invoke (no installation necessary).
 
 ## License
 
-Copyright (C) 2010 Piotr 'Qertoip' W�odarek
+Copyright (C) 2010 Piotr 'Qertoip' Włodarek
 
 Distributed under the MIT License.

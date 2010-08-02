@@ -64,8 +64,8 @@
 
 (defn help []
   (println "Specify file or directory. Examples:")
-  (println "java -jar cr_cleaner e:\\project\\docs.txt")
-  (println "java -jar cr_cleaner e:\\project")
+  (println "java -jar cleancr e:\\project\\docs.txt")
+  (println "java -jar cleancr e:\\project")
 )
 
 (defn user-confirmed? [message]
