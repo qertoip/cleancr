@@ -2,3 +2,6 @@ pom.xml
 *jar
 lib
 classes
+cleancr.iml
+cleancr.iws
+cleancr.ipr

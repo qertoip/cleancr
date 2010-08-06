@@ -1,10 +1,8 @@
 # cleancr
 
-This is initial version of the software and should not be used for production purposes.
+Finds and optionally removes __carriage return characters__ from your project text files (also known as Ctrl-M, ^M, \r).
 
-Finds and optionally removes __CR__ (carriage return) characters from your project text files.
-
-Carriage return characters also known as __\r__ or ^M are evil and should never happen to exist in your source code files.
+Carriage return characters are evil and should never happen to exist in your source code files.
 
 However, when software is being developed on multiple operating systems, editors and IDEs, it is easy for unwanted CR characters to sneak into your project.
 
@@ -12,9 +10,15 @@ Use cleancr tool to monitor for CR characters and get rid of them from the whole
 
 ## Usage
 
-java -jar cleancr e:\project
+    java -jar cleancr e:\project\docs.txt    # remove CR from single file
 
-java -jar cleancr e:\project\docs.txt
+    java -jar cleancr e:\project\*.java      # remove CR recursively from all .java files
+
+    java -jar cleancr e:\project             # remove CR recursively from all text files
+
+Please note:
+ * dotdirs and dotfiles are skipped (i.e. .svn, .gitignore)
+ * full wildcards are __not__ supported. It works only in some/dir/*.extension scenario.
 
 ## Installation
 
