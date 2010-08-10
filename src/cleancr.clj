@@ -1,8 +1,12 @@
 ; Finds and optionally removes carriage return characters from your project text files (also known as Ctrl-M, ^M, \r).
 
+; TODO:
+; * try to develop a true glob based on http://download.oracle.com/javase/tutorial/essential/io/find.html
+; * tests
+
 (ns cleancr
   (:use clojure.contrib.str-utils qertoip istext)
-  (:import java.io.File java.io.FileInputStream)
+  (:import java.io.File java.io.FileInputStream java.io.FileOutputStream)
   (:gen-class))
 
 (defn crs-in-string [s]
@@ -15,14 +19,11 @@
   (.replaceAll s "\r" ""))
 
 (defn remove-cr-from-file [file]
-  (let [filepath (.getAbsolutePath file)
-        dirty    (read-file filepath)
-        cleaned  (remove-cr-from-string dirty)
-        changed? (< (.length cleaned) (.length dirty))]
+  (let [dirty-bytes (read-bin-file file)
+        clean-bytes (filter #(not (= 13 %)) dirty-bytes)
+        changed?    (< (count clean-bytes) (alength dirty-bytes))]
     (if changed?
-      (do
-        (write-file filepath cleaned)
-        file)
+      (write-bin-file file clean-bytes)
       nil)))
 
 (defn remove-cr-from-files [files]
@@ -97,4 +98,4 @@
     (let [path (first args)]
       (report-and-remove-cr-from-path path))))
 
-;(-main "e:/kontomierz/*.haml")
+;(-main "e:/kontomierz/test")
