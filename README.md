@@ -12,17 +12,19 @@ The tool is recursive in nature. It is designed to clean up the whole directorie
 
 ## Usage
 
-    java -jar cleancr /some/project/docs.txt    # remove CR from single file
+    java -jar cleancr "/some/project/docs.txt"    # remove CR from a single file
 
-    java -jar cleancr /some/project/*.java      # remove CR recursively from all .java files
+    java -jar cleancr "/some/project/*.java"      # remove CR recursively from all .java files
 
-    java -jar cleancr /some/project             # remove CR recursively from all text files
+    java -jar cleancr "/some/project"             # remove CR recursively from all text files
+
+    java -jar cleancr "/some/project" --force     # won't ask for confirmation
 
 Please note:
 
 *   dotdirs and dotfiles are skipped (i.e. .svn, .gitignore)
 
-*   full wildcards are __not__ supported. It works only in some/dir/*.extension scenario.
+*   full wildcards are __not__ supported. It works only in "some/dir/*.ext" scenario.
 
 ## Installation
 
@@ -30,7 +32,7 @@ Simply download and invoke (no installation necessary).
 
 ## Development
 
-cleancr is built with Leiningen:
+cleancr is written in Clojure 1.2 + Contrib 1.2 and built with Leiningen 1.3:
 
     lein deps
     lein test

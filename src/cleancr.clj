@@ -1,6 +1,11 @@
 ; Finds and optionally removes carriage return characters from your project text files (also known as Ctrl-M, ^M, \r).
 
-; TODO:
+; Perhaps TODO:
+; * refactor
+;   * use multimethods
+;   * add function docs
+;   * add private access modifiers
+;   * split into logic and ui files?
 ; * try to develop a true glob based on http://download.oracle.com/javase/tutorial/essential/io/find.html
 ; * tests
 
@@ -9,26 +14,14 @@
   (:import java.io.File java.io.FileInputStream java.io.FileOutputStream)
   (:gen-class))
 
-(defn crs-in-string [s]
-  (count (re-seq #"\r" s)))
+(defn cr? [b]
+  (= 13 b))
 
-(defn crs-in-file [file]
-  (crs-in-string (read-file (.getAbsolutePath file))))
+(defn count-crs [coll]
+  (count (filter cr? coll)))
 
-(defn remove-cr-from-string [s]
-  (.replaceAll s "\r" ""))
-
-(defn remove-cr-from-file [file]
-  (let [dirty-bytes (read-bin-file file)
-        clean-bytes (filter #(not (= 13 %)) dirty-bytes)
-        changed?    (< (count clean-bytes) (alength dirty-bytes))]
-    (if changed?
-      (write-bin-file file clean-bytes)
-      nil)))
-
-(defn remove-cr-from-files [files]
-  (remove nil? (map remove-cr-from-file files)))
-
+(defn count-crs-in-file [file]
+  (count-crs (read-bin-file file)))
 
 (defn print-found-crs [results]
   (if (empty? results)
@@ -45,15 +38,16 @@
 (defn report-cr-in-files [files]
   (let [results
          (select-crs
-           (map #(vector % (crs-in-file %)) files))]
+           (map #(vector % (count-crs-in-file %)) files))]
     (print-found-crs results)
     results))
 
 (defn help []
   (println "Specify a file, a wildcard or a directory. Examples:")
-  (println "java -jar cleancr /e/project/docs.txt")
-  (println "java -jar cleancr /e/project/*.txt")
-  (println "java -jar cleancr /e/project"))
+  (println "java -jar cleancr \"/some/project/docs.txt\"")
+  (println "java -jar cleancr \"/some/project/*.txt\"")
+  (println "java -jar cleancr \"/some/project\"" )
+  (println "java -jar cleancr \"/some/project\" --force    # won't ask for confirmation"))
 
 (defn extension-matches? [file ext]
   (.endsWith (.getAbsolutePath file) ext))
@@ -63,7 +57,7 @@
         filepath    (.getAbsolutePath file)]
     (re-matches dot_in_path filepath)))
 
-(defn dir-textfiles [dir, extension]
+(defn dir-textfiles [dir extension]
   (select text-file?
     (select #(extension-matches? % extension)
       (select #(not (dotfile? %))
@@ -76,26 +70,39 @@
         extension    (second path_and_ext)]
     (dir-textfiles path extension)))
 
-(defn report-and-remove-cr-from-files [files]
+(defn remove-cr-from-file [file]
+  (let [all-bytes-array   (read-bin-file file)
+        all-bytes-count   (alength all-bytes-array)
+        clean-bytes-seq   (filter #(not (= 13 %)) all-bytes-array)
+        clean-bytes-count (- all-bytes-count (count-crs all-bytes-array))
+        changed?          (< clean-bytes-count all-bytes-count)]
+    (if changed?
+      (write-bin-file file clean-bytes-seq clean-bytes-count))))
+
+(defn remove-cr-from-files [files]
+  (remove nil? (map remove-cr-from-file files)))
+
+(defn report-and-remove-cr-from-files [files force?]
   (if (not (empty? (report-cr-in-files files)))
-    (if (user-confirmed? "Remove CR characters from the above files (y/N)?")
+    (if (or force? (user-confirmed? "Remove CR characters from the above files (y/N)?"))
       (doseq [file (remove-cr-from-files files)]
         (println (str "Removed CR characters from " (.getAbsolutePath file))))
       (println "Files have NOT been changed."))))
 
-(defn report-and-remove-cr-from-path [path_string]
-  (println (str "About to remove CR characters from " path_string "..."))
-  (let [path (File. path_string)]
+(defn report-and-remove-cr-from-path [path-string force?]
+  (println (str "About to remove CR characters from " path-string "..."))
+  (let [path (File. path-string)]
     (if (.isDirectory path)
-      (report-and-remove-cr-from-files (dir-textfiles path ""))
+      (report-and-remove-cr-from-files (dir-textfiles path "") force?)
       (if (.isFile path)
-        (report-and-remove-cr-from-files (vector path))
-        (report-and-remove-cr-from-files (wildcard-textfiles path))))))
+        (report-and-remove-cr-from-files (vector path) force?)
+        (report-and-remove-cr-from-files (wildcard-textfiles path) force?)))))
 
 (defn -main [& args]
   (if (empty? args)
     (help)
-    (let [path (first args)]
-      (report-and-remove-cr-from-path path))))
+    (let [path   (first args)
+          force? (= (second args) "--force")]
+      (report-and-remove-cr-from-path path force?))))
 
-;(-main "e:/kontomierz/test")
+;(-main "e:/kontomierz" "--force")
